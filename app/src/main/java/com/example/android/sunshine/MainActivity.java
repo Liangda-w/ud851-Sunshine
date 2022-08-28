@@ -23,6 +23,9 @@ import android.widget.TextView;
 
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.utilities.NetworkUtils;
+import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
+
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -57,26 +60,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO (5) Create a class that extends AsyncTask to perform network requests
-    public class FetchWeatherTask extends AsyncTask<URL, Void, String> {
+    public class FetchWeatherTask extends AsyncTask<URL, Void, String[]> {
 
         // TODO (6) Override the doInBackground method to perform your network requests
         @Override
-        protected String doInBackground(URL... params) {
+        protected String[] doInBackground(URL... params) {
             URL searchUrl = params[0];
-            String searchResults = null;
+            String[] formatedSearchResults = null;
             try {
-                searchResults = NetworkUtils.getResponseFromHttpUrl(searchUrl);
-            } catch (IOException e) {
+                String searchResults = NetworkUtils.getResponseFromHttpUrl(searchUrl);
+                formatedSearchResults = OpenWeatherJsonUtils.getSimpleWeatherStringsFromJson(MainActivity.this, searchResults);
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
-            return searchResults;
+            return formatedSearchResults;
         }
 
         // TODO (7) Override the onPostExecute method to display the results of the network request
         @Override
-        protected void onPostExecute(String searchResults) {
-            if (searchResults != null && !searchResults.equals("")) {
-                mWeatherTextView.setText(searchResults);
+        protected void onPostExecute(String[] searchResults) {
+            if (searchResults != null) {
+                for (String weatherDay : searchResults) {
+                    mWeatherTextView.append(weatherDay + "\n\n\n");
+                }
             }
         }
     }
